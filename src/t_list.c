@@ -164,6 +164,39 @@ robj *listTypeGet(listTypeEntry *entry) {
     return value;
 }
 
+
+/* Addition */
+
+unsigned int listTypeGetIndex(listTypeEntry *entry) {
+    unsigned int index = 0;    
+    unsigned char *prev;
+    if (o->encoding == REDIS_ENCODING_ZIPLIST) {
+        unsigned char *zi = entry->zi;  
+        if (zi != NULL) {
+            while (zi) {
+                index++;
+                zi = ziplistPrev(entry->li->subject->ptr, zi);
+            }
+        } else {
+            redisPanic("Unable to grab list node from listEntry");
+        }
+        return index;
+    } else if (o->encoding == REDIS_ENCODING_LINKEDLIST) {
+        listNode *node = entry->ln;
+        if (node != NULL) {
+            while (node->prev) {
+                index++;
+                node = node->prev;
+            }
+        } else {
+            redisPanic("Unable to grab list node from listEntry");
+        }
+        return index;
+    }   
+    return NULL;
+}
+
+
 void listTypeInsert(listTypeEntry *entry, robj *value, int where) {
     robj *subject = entry->li->subject;
     if (entry->li->encoding == REDIS_ENCODING_ZIPLIST) {

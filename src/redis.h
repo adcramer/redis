@@ -555,8 +555,10 @@ struct redisFunctionSym {
     unsigned long pointer;
 };
 
+/* Addition: added index attr */
 typedef struct _redisSortObject {
     robj *obj;
+    unsigned int index;
     union {
         double score;
         robj *cmpobj;
@@ -722,6 +724,9 @@ void listTypeConvert(robj *subject, int enc);
 void unblockClientWaitingData(redisClient *c);
 int handleClientsWaitingListPush(redisClient *c, robj *key, robj *ele);
 void popGenericCommand(redisClient *c, int where);
+/* Addition */
+unsigned int listTypeGetIndex(listTypeEntry *entry);
+
 
 /* MULTI/EXEC/WATCH... */
 void unwatchAllKeys(redisClient *c);

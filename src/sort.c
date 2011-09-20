@@ -136,6 +136,7 @@ void sortCommand(redisClient *c) {
     int limit_start = 0, limit_count = -1, start, end;
     int j, dontsort = 0, vectorlen;
     int getop = 0; /* GET operation counter */
+    int getidx = 0;
     robj *sortval, *sortby = NULL, *storekey = NULL;
     redisSortObject *vector; /* Resulting vector to sort */
 
@@ -190,6 +191,11 @@ void sortCommand(redisClient *c) {
                 REDIS_SORT_GET,c->argv[j+1]));
             getop++;
             j++;
+        /* Addition */
+        } else if (!strcasecmp(c->argv[j]->ptr,"indexes")) {  
+            if (sortval->type == REDIS_LIST) { 
+                getidx = 1;
+            }
         } else {
             decrRefCount(sortval);
             listRelease(operations);
@@ -217,6 +223,8 @@ void sortCommand(redisClient *c) {
         listTypeEntry entry;
         while(listTypeNext(li,&entry)) {
             vector[j].obj = listTypeGet(&entry);
+            /* Addition */
+            vector[j].index = listTypeGetIndex(&entry);
             vector[j].u.score = 0;
             vector[j].u.cmpobj = NULL;
             j++;
@@ -308,7 +316,8 @@ void sortCommand(redisClient *c) {
     /* Send command output to the output buffer, performing the specified
      * GET/DEL/INCR/DECR operations if any. */
     outputlen = getop ? getop*(end-start+1) : end-start+1;
-    if (storekey == NULL) {
+    outputlen = outputlen *= (getidx + 1); /* Addition */
+    if (storekey == NULL || getidx) {
         /* STORE option not specified, sent the sorting result to client */
         addReplyMultiBulkLen(c,outputlen);
         for (j = start; j <= end; j++) {
@@ -316,6 +325,7 @@ void sortCommand(redisClient *c) {
             listIter li;
 
             if (!getop) addReplyBulk(c,vector[j].obj);
+            if (getidx) addReplyBulk(c, vector[j].index); /* Addition */
             listRewind(operations,&li);
             while((ln = listNext(&li))) {
                 redisSortOperation *sop = ln->value;
