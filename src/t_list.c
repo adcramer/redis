@@ -165,32 +165,35 @@ robj *listTypeGet(listTypeEntry *entry) {
 }
 
 
-/* Addition */
 
 unsigned int listTypeGetIndex(listTypeEntry *entry) {
-    unsigned int index = 0;    
-    unsigned char *prev;
+    unsigned int index = 0;
     if (o->encoding == REDIS_ENCODING_ZIPLIST) {
-        unsigned char *zi = entry->zi;  
-        if (zi != NULL) {
-            while (zi) {
-                index++;
-                zi = ziplistPrev(entry->li->subject->ptr, zi);
-            }
-        } else {
-            redisPanic("Unable to grab list node from listEntry");
+        unsigned char *zl = entry->li->subject->ptr;
+        unsigned char *p = entry->zi->p;  
+        unsigned char *entry;
+        unsigned int elen;
+        long long value;
+        redisLog(REDIS_WARNING, "before ziplist while loop");
+        while (ziplistGet(p, &entry, &elen, &value)) {
+            p = ziplistPrev(zl,p);
+            index++;
         }
+        redisLog(REDIS_WARNING, "after ziplist while loop, index %s", index);
         return index;
+    
     } else if (o->encoding == REDIS_ENCODING_LINKEDLIST) {
         listNode *node = entry->ln;
         if (node != NULL) {
-            while (node->prev) {
+            redisLog(REDIS_WARNING, "before ziplist while loop");
+            while (node->prev != NULL) {
                 index++;
                 node = node->prev;
             }
         } else {
             redisPanic("Unable to grab list node from listEntry");
         }
+        redisLog(REDIS_WARNING, "after list while loop, index %s", index);
         return index;
     }   
     return NULL;
@@ -888,6 +891,7 @@ int handleClientsWaitingListPush(redisClient *c, robj *key, robj *ele) {
         /* Protect receiver->bpop.target, that will be freed by
          * the next unblockClientWaitingData() call. */
         if (dstkey) incrRefCount(dstkey);
+
         /* This should remove the first element of the "clients" list. */
         unblockClientWaitingData(receiver);
 

@@ -558,11 +558,11 @@ struct redisFunctionSym {
 /* Addition: added index attr */
 typedef struct _redisSortObject {
     robj *obj;
-    unsigned int index;
     union {
         double score;
         robj *cmpobj;
     } u;
+    unsigned int index;
 } redisSortObject;
 
 typedef struct _redisSortOperation {
