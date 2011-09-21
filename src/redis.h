@@ -562,7 +562,7 @@ typedef struct _redisSortObject {
         double score;
         robj *cmpobj;
     } u;
-    int index;
+    unsigned int index;
 } redisSortObject;
 
 typedef struct _redisSortOperation {

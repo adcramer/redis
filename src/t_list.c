@@ -166,8 +166,8 @@ robj *listTypeGet(listTypeEntry *entry) {
 
 
 
-int listTypeGetIndex(listTypeEntry *entry) {
-    int index = 0;
+unsigned int listTypeGetIndex(listTypeEntry *entry) {
+    unsigned int index = 0;
     if (entry->li->subject->encoding == REDIS_ENCODING_ZIPLIST) {
         unsigned char *zl = entry->li->subject->ptr;
         unsigned char *p = entry->zi;
