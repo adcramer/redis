@@ -195,6 +195,7 @@ void sortCommand(redisClient *c) {
         } else if (!strcasecmp(c->argv[j]->ptr,"indexes")) {  
             if (sortval->type == REDIS_LIST) { 
                 getidx = 1;
+                redisLog(REDIS_WARNING, "GETIDX %d", getidx);
             }
         } else {
             decrRefCount(sortval);
@@ -225,6 +226,7 @@ void sortCommand(redisClient *c) {
             vector[j].obj = listTypeGet(&entry);
             /* Addition */
             vector[j].index = listTypeGetIndex(&entry);
+            redisLog(REDIS_WARNING, "Vector has index: %d", vector[j].index);
             vector[j].u.score = 0;
             vector[j].u.cmpobj = NULL;
             j++;
@@ -317,6 +319,7 @@ void sortCommand(redisClient *c) {
      * GET/DEL/INCR/DECR operations if any. */
     outputlen = getop ? getop*(end-start+1) : end-start+1;
     outputlen = outputlen *= (getidx + 1); /* Addition */
+    redisLog(REDIS_WARNING, "outputlen: %d", outputlen);
     if (storekey == NULL || getidx) {
         /* STORE option not specified, sent the sorting result to client */
         addReplyMultiBulkLen(c,outputlen);
@@ -325,7 +328,7 @@ void sortCommand(redisClient *c) {
             listIter li;
 
             if (!getop) addReplyBulk(c,vector[j].obj);
-            if (getidx) addReplyBulk(c, vector[j].index); /* Addition */
+            if (getidx) addReplyLongLong(c, vector[j].index); /* Addition */
             listRewind(operations,&li);
             while((ln = listNext(&li))) {
                 redisSortOperation *sop = ln->value;

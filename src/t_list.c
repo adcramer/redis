@@ -166,8 +166,8 @@ robj *listTypeGet(listTypeEntry *entry) {
 
 
 
-unsigned int listTypeGetIndex(listTypeEntry *entry) {
-    unsigned int index = 0;
+int listTypeGetIndex(listTypeEntry *entry) {
+    int index = 0;
     if (entry->li->subject->encoding == REDIS_ENCODING_ZIPLIST) {
         unsigned char *zl = entry->li->subject->ptr;
         unsigned char *p = entry->zi;
@@ -179,7 +179,7 @@ unsigned int listTypeGetIndex(listTypeEntry *entry) {
             p = ziplistPrev(zl,p);
             index++;
         }
-        redisLog(REDIS_WARNING, "after ziplist while loop, index %s", index);
+        redisLog(REDIS_WARNING, "after ziplist while loop, index %d", index);
         return index;
     
     } else if (entry->li->subject->encoding == REDIS_ENCODING_LINKEDLIST) {
@@ -193,7 +193,7 @@ unsigned int listTypeGetIndex(listTypeEntry *entry) {
         } else {
             redisPanic("Unable to grab list node from listEntry");
         }
-        redisLog(REDIS_WARNING, "after list while loop, index %s", index);
+        redisLog(REDIS_WARNING, "after list while loop, index %d", index);
         return index;
     }   
     return NULL;
